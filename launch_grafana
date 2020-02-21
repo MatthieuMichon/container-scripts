@@ -1,0 +1,19 @@
+#!/bin/sh
+
+set -e
+
+DOCKER_CLI="podman"
+${DOCKER_CLI} --version
+
+# Create a persistent volume in /var/lib/grafana (database and plugins)
+
+GRAFANA_VOLUME="grafana-storage"
+set +e
+[[ $(${DOCKER_CLI} volume ls --format '{{.Name}}' | \
+	grep ${GRAFANA_VOLUME}) == ${GRAFANA_VOLUME} ]] || \
+	${DOCKER_CLI} volume create ${GRAFANA_VOLUME}
+set -e
+
+# Launch grafana
+
+${DOCKER_CLI} run -d -p 3000:3000 --name=grafana -v ${GRAFANA_VOLUME}:/var/lib/grafana grafana/grafana

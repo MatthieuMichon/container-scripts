@@ -2,18 +2,23 @@
 
 set -e
 
-DOCKER_CLI="podman"
-${DOCKER_CLI} --version
+docker_cli="podman"
+${docker_cli} --version
 
 # Create a persistent volume in /var/lib/grafana (database and plugins)
 
-GRAFANA_VOLUME="grafana-storage"
+grafana_volume="grafana-storage"
 set +e
-[[ $(${DOCKER_CLI} volume ls --format '{{.Name}}' | \
-	grep ${GRAFANA_VOLUME}) == ${GRAFANA_VOLUME} ]] || \
-	${DOCKER_CLI} volume create ${GRAFANA_VOLUME}
+[[ $(${docker_cli} volume ls --format '{{.Name}}' | \
+	grep ${grafana_volume}) == ${grafana_volume} ]] || \
+	${docker_cli} volume create ${grafana_volume}
 set -e
 
 # Launch grafana
+${docker_cli} pull grafana/grafana
+${docker_cli} run -d -p 3000:3000 --name=grafana -v ${grafana_volume}:/var/lib/grafana grafana/grafana
 
-${DOCKER_CLI} run -d -p 3000:3000 --name=grafana -v ${GRAFANA_VOLUME}:/var/lib/grafana grafana/grafana
+# InfluxDB
+
+${docker_cli} pull influxdb
+${docker_cli} run -d -p 8086:8086 -v influxdb:/var/lib/influxdb --name influxdb influxdb
